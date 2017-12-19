@@ -1,0 +1,23 @@
+
+{% extends "bases/bootstrap-with-nav.html" %}
+{% load staticfiles %}
+
+{% block content %}
+
+ <div class="container">
+   <h1>Events</h1>
+   <div class="btn-group panel" role="group" aria-label="...">
+     <a href="{% url 'polls:create-event' %}" class="btn btn-default" role="button">Create Event</a>
+   </div>
+   {% if object_list %}
+     <ul class="list-group">
+       {% for event in object_list %}
+         <li class="list-group-item"><a href="{% url 'polls:view-event' event.id %}">{{ event.title }}</a> - {{ event.start_time }}</li>
+       {% endfor %}
+     </ul>
+   {% else %}
+     <p>No Events are available.</p>
+   {% endif %}
+ </div>
+
+{% endblock %}

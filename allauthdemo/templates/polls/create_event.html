@@ -1,0 +1,19 @@
+{% extends "bases/bootstrap-with-nav.html" %}
+{% load staticfiles %}
+{% load bootstrap3 %}
+
+{% block content %}
+
+<div class="container">
+ <h1>Create Event</h1>
+ {% load crispy_forms_tags %}
+ <form method="post" action="" enctype="multipart/form-data" class="">
+    {% comment %}
+      enctype necessary for file uploads
+    {% endcomment %}
+    {% crispy form %}
+    <input class="btn btn-default" type="submit" value="Submit"/>
+</form>
+</div>
+
+{% endblock %}

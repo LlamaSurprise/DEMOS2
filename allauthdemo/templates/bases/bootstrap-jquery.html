@@ -1,0 +1,147 @@
+{% extends "bases/bootstrap.html" %}
+{% load staticfiles %}
+
+{% block tail_js %}
+<script>
+  Module = {};
+  Module.memoryInitializerPrefixURL = "{% static 'js/' %}";
+</script>
+<script src="//code.jquery.com/jquery-2.2.4.min.js"></script>
+<!-- <script>window.jQuery || document.write('<script src="js/jquery-1.10.1.min.js"><\/script>')</script> -->
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.37/js/bootstrap-datetimepicker.min.js"></script>
+<script src="{% static 'js/create.js' %}" type="text/javascript"></script>
+<script src="{% static 'js/encrypt.js' %}" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.0/jquery-ui.js" type="text/javascript"></script>
+
+{% block app_js %}
+
+<script type="text/javascript">
+
+
+  {% block app_js_vars %}
+  {% endblock %}
+
+  Module.memoryInitializerPrefixURL = "LOL";
+  var demosEncrypt = {
+    param: Module.cwrap('param', 'string', ['number']),
+    keygen: Module.cwrap('keygen', 'string', ['string']),
+    combpk: Module.cwrap('combpk', 'string', ['string', 'string']),
+    enc: Module.cwrap('enc', 'string', ['string', 'string', 'number', 'number']),
+    addec: Module.cwrap('addec', 'string', ['string', 'number']),
+    dec: Module.cwrap('dec', 'string', ['string', 'string']),
+    tally: Module.cwrap('tally', 'string', ['string', 'string', 'string', 'number'])
+  }
+
+  demosEncrypt.encryptAndSubmit = function() {
+    var answer = $('#poll-options').val();
+    var cipher = demosEncrypt.enc(param, comb_pk, answer, option_count);
+    $('#id_cipher_text').val(cipher);
+    $('#cipher-form').submit();
+  }
+
+  demosEncrypt.decryptCipher = function() {
+    var sk = $('#secret-key').val();
+    if (!sk) {
+      alert("Please enter your secret key");
+    }
+    else {
+      var inputs = $("form input[type=text]");
+      inputs.each(function() {
+        var decryptText = demosEncrypt.dec(sk, $(this).val());
+        $(this).val(decryptText);
+      })
+      $('input[type=submit]').prop("disabled", false);
+    }
+  }
+
+  demosEncrypt.generateKeys = function() {
+    parameter = $("#event-param").val();
+    var genkeys= demosEncrypt.keygen(parameter);
+    pk = genkeys.substring(0, genkeys.lastIndexOf('\n'));
+    sk = genkeys.slice(genkeys.lastIndexOf('\n') + 1);
+    $('input#public-key').val(pk);
+    $('input#secret-key').val(sk);
+    var blob = new Blob([sk], {type : 'text/plain'});
+
+    var dlBtn = $('a#download-btn');
+    var url = URL.createObjectURL(blob);
+    var fileName =
+    $(dlBtn).attr("href", url);
+    $(dlBtn).attr("download", "sk-{% block sk-file-name %}{% endblock %}".replace(/[\W]/g, "-"));
+    $(dlBtn).attr("disabled", false);
+  }
+
+  demosEncrypt.downloadSecretKey = function() {
+    var blob = new Blob([sk], {type : 'text/plain'});
+    var dlBtn = $('a#download-btn');
+    $(dlBtn).attr("disabled", true);
+  }
+
+  function getFormsetPrefix(id) {
+    id = id.replace(/(?:id_)?formset_/, ""); // strip generic part
+    return id.replace(/([A-Za-z0-9]+)[\w-]*/, "$1"); // return prefix
+  }
+
+  function setFormsetIndex(ele, prefix, index) {
+    ele = $(ele).find("div[id^='id_formset'], input[id^='id_formset']").each(function (i, el) {
+     var id = $(el).attr("id");
+     id = "id_formset_" + prefix + '-' + index + id.match(/-\w+$/);
+     $(el).attr("id", id);
+     if ($(el).is("input")) {
+       $(el).attr("name", id.replace(/^id_/, ""));
+     }
+   });
+  }
+
+  $('.formset').sortable({handle:".input-group-addon", items:".formset_object",
+    start: function(event, ui) {
+      ui.item.prevPos = ui.item.index();
+      console.log(ui.item.prevPos);
+    },
+    update: function(event, ui) {
+      ui.item.prevPos = null;
+    },
+    beforeStop: function(event, ui) {
+      $(ui.item).css("animation", "none"); // prevents firing of entry keyframe
+    }
+  });
+  //$('.glyphicon.glyphicon-trash').parent().hide();
+  $('.formset').find
+  $('.formset').on('click', '.input-group-addon', function() { // this makes the label a delete btn too :(
+    var ele = $(this).closest(".formset_object");
+    var prefix = $(this).closest(".formset_object").data("prefix") || getFormsetPrefix($(this).closest(".formset_object").find('input:first').attr("id"));
+    var current_total = parseInt($("#id_formset_" + prefix + "-TOTAL_FORMS").val());
+    if (current_total <= $("#id_formset_" + prefix + "-MIN_NUM_FORMS").val()) {
+      return; // don't allow removal of last element
+    }
+    ele.remove();
+    $("#id_formset_" + prefix + "-TOTAL_FORMS").val(current_total - 1);
+    $(".formset").sortable( "refresh" );
+    $(".formset").sortable( "refreshPositions" );
+  });
+  $('.add-another-btn').on('click',function() {
+    var new_formset_item = $(this).prevAll(".formset_object:first").clone();
+    var prefix = getFormsetPrefix(new_formset_item.find("input:first").attr("id"));
+    var current_total = parseInt($("#id_formset_" + prefix + "-TOTAL_FORMS").val());
+    if (current_total >= $("#id_formset_" + prefix + "-MAX_NUM_FORMS").val()) {
+      return; // don't allow more than max forms
+    }
+    new_formset_item.data("prefix", prefix);
+    $(this).before(new_formset_item);
+    new_formset_item.find("input").val("");
+    setFormsetIndex(new_formset_item, prefix, parseInt($("#id_formset_" + prefix + "-TOTAL_FORMS").val()));
+    $("#id_formset_" + prefix + "-TOTAL_FORMS").val(parseInt($("#id_formset_" + prefix + "-TOTAL_FORMS").val()) +1);
+    $(".formset").sortable( "refresh" );
+    $(".formset").sortable( "refreshPositions" );
+  });
+
+  // rudimentary accordion error handling
+  $('.has-error').closest('.panel').find('.panel-heading').addClass("error");
+  $('.alert.alert-block.alert-danger').closest('.panel').find('.panel-heading').addClass("error");
+</script>
+
+{% endblock %}
+
+{% endblock %}
