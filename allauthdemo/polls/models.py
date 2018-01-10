@@ -24,7 +24,7 @@ class Event(models.Model):
     prepared = models.BooleanField(default=False)
     public_key = models.CharField(null=True, blank=False, max_length=1024)
     title = models.CharField(max_length=1024)
-    EID = models.CharField(max_length=512, blank=True)
+    EID = models.CharField(max_length=2048, blank=True)
     creator = models.CharField(max_length=256, blank=True)
     c_email = models.CharField(max_length=512, blank=True)
     trustees = models.CharField(max_length=4096)
