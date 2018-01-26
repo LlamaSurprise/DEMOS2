@@ -25,10 +25,12 @@ def create_ballots(poll):
 
 @task()
 def create_voters(csvfile, event):
+    print("Creating voters for event" + event.title)
     reader = csv.reader(csvfile, delimiter=',')
     string = ""
     for row in reader:
         email = string.join(row)
+        print(email)
         if (is_valid_email(email)):
             voter = EmailUser.objects.get_or_create(email=email)[0]
             event.voters.add(voter)
@@ -45,6 +47,7 @@ def create_voters(csvfile, event):
 @task()
 def generate_event_param(event, num):
     event.EID = param(str(num))
+    #event.prepared = True #temporary, just to get this running
     event.save()
 
 @task()
