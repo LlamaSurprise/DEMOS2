@@ -284,8 +284,8 @@ def create_event(request):
                             event.users_trustees.add(EmailUser.objects.get_or_create(email=tform.cleaned_data['email'])[0])
                     return HttpResponseRedirect('/event/' + str(event.id) + '/create/poll') # change to reverse format
 
-            #if request.FILES:
-                #create_voters.delay(csvfile, event) # this will be done on event launch ultimately
+            if request.FILES:
+                create_voters.delay(csvfile, event) # this will be done on event launch ultimately
 
         return render(request, "polls/create_event.html", {"event": event, "form": form, "organiser_formset": organiser_formset, "trustee_formset": trustee_formset})
 
