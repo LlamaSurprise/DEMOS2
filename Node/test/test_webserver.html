@@ -47,6 +47,7 @@
 <button type="button" id="addec" class="btn">addec</button>
 <p id="addecLocal">addec Local results</p>
 <p id="addecServer">addec Server results</p>
+<p id="addecResult">addec comparison results</p>
 
 <script>
 $(document).ready(function(){
@@ -124,13 +125,36 @@ $(document).ready(function(){
 
 			if (this.readyState == 4 && this.status == 200) {
 			    
-			    var S = add(cArray);
-			    var msg = decrypt(params, keys.SK, S);
-		  		document.getElementById("addecLocal").innerHTML = JSON.stringify(S) + ' : ' + msg.M;
+			    var localAdd = add(cArray);
+			    var localM = decrypt(params, keys.SK, localAdd);
+			    
+			    console.log(localM);
+		  		document.getElementById("addecLocal").innerHTML = JSON.stringify(localAdd);
 
 
 		  		console.log("Request: /addec"+queryparams);
 		  		document.getElementById("addecServer").innerHTML = this.responseText;
+
+		  		//build object from server
+		  		var temp = JSON.parse(this.responseText);
+
+		  		//the values need to be copied in otherwise decryption doesn't work
+		  		var ctx = new CTX("BN254CX");  
+		        var s1=new ctx.ECP();
+		        var s2=new ctx.ECP();
+		        //copy the first cipher
+		        s1.copy(temp.C1);
+		        s2.copy(temp.C2);
+		  		var serverAdd = {
+	  			       C1:s1,
+	  			       C2:s2
+		  		}
+		  		
+		  		var serverM = decrypt(params, keys.SK, serverAdd);
+		  		console.log(serverM);
+		
+		  		document.getElementById("addecResult").innerHTML = "Local results: " + localM.M + ", Server results: " + serverM.M + "\n JSON string match: " + (JSON.stringify(localAdd) == this.responseText);
+
 			}
 		};
 		xhttp.open("GET", "/addec"+queryparams, true);

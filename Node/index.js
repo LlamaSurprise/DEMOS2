@@ -109,8 +109,7 @@ app.get('/addec', function(request, response){
         console.log(j + ".C2:   " + c2[j]);
 		parsed[j].C2 = newC2;
 	}
-
-	//The values DONT match up yet! C1 appears to be fine, C2 is incorrect
+    
 	response.json(add(parsed));
 })
 
