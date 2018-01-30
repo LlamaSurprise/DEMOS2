@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html>
-<body>
 
+<head>
 
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 <script src="https://code.jquery.com/jquery.js"></script>
 <!-- Bootstrap core JavaScript -->
 <script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+
+</head>
+<body>
+
 
 
 <!-- Crypto JS -->
@@ -49,6 +53,14 @@
 <p id="addecServer">addec Server results</p>
 <p id="addecResult">addec comparison results</p>
 
+
+<button type="button" id="combpk" class="btn">combpk</button>
+<p id="combpkLocal">combpk Local results</p>
+<p id="combpkServer">combpk Server results</p>
+<p id="combpkResult">compk comparison results</p>
+
+
+
 <script>
 $(document).ready(function(){
 
@@ -76,23 +88,20 @@ $(document).ready(function(){
     //test decrypt
     var message = decrypt(params, keys.SK, cipher);
 
-    //test combine key
-    var k1 = keyGen(params);
-    var k2 = keyGen(params);
 
-    var PKs = new Array(k1.PK,k2.PK);
-    var pk = combine(PKs); 
 
 
     
 
 
     //test tally
+    /*
     var Tc = encrypt(params,pk.PK, 3);
     var D1 = partDec(k1.SK, Tc);
     var D2 = partDec(k2.SK, Tc);
     var Ds = new Array(D1,D2);
     var tar = tally(params, Ds, Tc);
+    */
 
 
 	$("#addec").click(function(){
@@ -127,7 +136,7 @@ $(document).ready(function(){
 			    
 			    var localAdd = add(cArray);
 			    var localM = decrypt(params, keys.SK, localAdd);
-			    
+
 			    console.log(localM);
 		  		document.getElementById("addecLocal").innerHTML = JSON.stringify(localAdd);
 
@@ -158,6 +167,43 @@ $(document).ready(function(){
 			}
 		};
 		xhttp.open("GET", "/addec"+queryparams, true);
+		xhttp.send();
+	})
+
+	$("#combpk").click(function(){
+
+		var k1 = keyGen(params);
+		var k2 = keyGen(params);
+
+	    var bytes = [];
+
+		var queryparams = "?PK=";
+		k1.PK.toBytes(bytes);
+		queryparams += bytes.toString();
+
+		queryparams += "&PK=";
+		k2.PK.toBytes(bytes);
+		queryparams += bytes.toString();
+
+		
+		var xhttp = new XMLHttpRequest();
+		xhttp.onreadystatechange = function() {
+			if (this.readyState == 4 && this.status == 200) {
+				//test combine key
+				
+
+				var PKs = new Array(k1.PK,k2.PK);
+				var pk = combine(PKs); 
+
+				document.getElementById("combpkServer").innerHTML = this.responseText;
+
+				document.getElementById("combpkLocal").innerHTML = JSON.stringify(pk);
+
+				var match = (this.responseText == JSON.stringify(pk));
+				document.getElementById("combpkResult").innerHTML = "Matching strings: " + match;
+			}
+		};
+		xhttp.open("GET", "/cmpkstring"+queryparams, true);
 		xhttp.send();
 	})
 

@@ -73,7 +73,7 @@ app.get('/cmpkstring', function(request, response){
 
 	}
 
-	response.json(combine(parsed).PK);
+	response.json(combine(parsed));
 })
 
 
@@ -109,7 +109,7 @@ app.get('/addec', function(request, response){
         console.log(j + ".C2:   " + c2[j]);
 		parsed[j].C2 = newC2;
 	}
-    
+
 	response.json(add(parsed));
 })
 
