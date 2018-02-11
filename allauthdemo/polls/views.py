@@ -175,6 +175,8 @@ def event_trustee_setup(request, event_id):
             else:
                 form = EventSetupForm()
                 return render(request, "polls/event_setup.html", {"event": event, "form": form })
+
+    #if no key or is invalid?
     messages.add_message(request, messages.WARNING, 'You do not have permission to access: ' + request.path)
     return HttpResponseRedirect(reverse("user_home"))
 
@@ -261,8 +263,8 @@ def create_event(request):
     event = Event()
     if request.method == "POST":
         if request.FILES: # if there is a file we should ignore voters...?
-
             csvfile = StringIO(request.FILES['votersTextFile'].read().decode('utf-8'))
+            print("got file from request:")
 
         form = EventForm(request.POST)
         organiser_formset = OrganiserFormSet(request.POST, prefix="formset_organiser") # incase form fails, we still want to retain formset data
@@ -270,6 +272,11 @@ def create_event(request):
         if form.is_valid():
             event = form.save()
             generate_event_param.delay(event, len(event.title))
+            if request.FILES:
+                print("creating voters")
+                create_voters.delay(csvfile, event) # this will be done on event launch ultimately
+            
+
 
             if organiser_formset.is_valid():
                 #event.users_organisers.clear()
@@ -284,9 +291,7 @@ def create_event(request):
                             event.users_trustees.add(EmailUser.objects.get_or_create(email=tform.cleaned_data['email'])[0])
                     return HttpResponseRedirect('/event/' + str(event.id) + '/create/poll') # change to reverse format
 
-            if request.FILES:
-                create_voters.delay(csvfile, event) # this will be done on event launch ultimately
-
+            
         return render(request, "polls/create_event.html", {"event": event, "form": form, "organiser_formset": organiser_formset, "trustee_formset": trustee_formset})
 
     elif request.method == "GET":

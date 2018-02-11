@@ -14,6 +14,8 @@ from allauthdemo.auth.models import DemoUser
 
 class EmailUser(models.Model):
     email = models.CharField(max_length=80, unique=True)
+    def __unicode__(self):
+        return self.email
 
 class Event(models.Model):
     users_organisers = models.ManyToManyField(DemoUser, blank=True, related_name="organisers")

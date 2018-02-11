@@ -12,7 +12,7 @@ from .cpp_calls import param, combpk, addec, tally
 
 def is_valid_email(email):
     try:
-        valid_email = EmailValidator()
+        valid_email = EmailValidator(whitelist=None)
         valid_email(email)
         return True
     except ValidationError:
@@ -25,12 +25,14 @@ def create_ballots(poll):
 
 @task()
 def create_voters(csvfile, event):
-    print("Creating voters for event" + event.title)
+    print("Creating voters for event " + event.title)
     reader = csv.reader(csvfile, delimiter=',')
     string = ""
     for row in reader:
         email = string.join(row)
         print(email)
+        #testvoter = EmailUser.objects.get_or_create(email='notarealemail@live.com')[0]
+        #event.voters.add(testvoter)
         if (is_valid_email(email)):
             voter = EmailUser.objects.get_or_create(email=email)[0]
             event.voters.add(voter)
