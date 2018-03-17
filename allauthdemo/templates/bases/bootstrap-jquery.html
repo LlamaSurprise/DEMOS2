@@ -55,20 +55,46 @@
 
   Module.memoryInitializerPrefixURL = "LOL";
   var demosEncrypt = {
-    param: Module.cwrap('param', 'string', ['number']),
+    /*param: Module.cwrap('param', 'string', ['number']),
     keygen: Module.cwrap('keygen', 'string', ['string']),
     combpk: Module.cwrap('combpk', 'string', ['string', 'string']),
     enc: Module.cwrap('enc', 'string', ['string', 'string', 'number', 'number']),
     addec: Module.cwrap('addec', 'string', ['string', 'number']),
     dec: Module.cwrap('dec', 'string', ['string', 'string']),
-    tally: Module.cwrap('tally', 'string', ['string', 'string', 'string', 'number'])
+    tally: Module.cwrap('tally', 'string', ['string', 'string', 'string', 'number'])*/
   }
 
   demosEncrypt.encryptAndSubmit = function() {
+    var ctx = new CTX("BN254CX"); //new context we can use
+    var n = new ctx.BIG();
+    var g1 = new ctx.ECP();
+    var g2 = new ctx.ECP2();
+
+    var param = $('#event-param').val();
+    console.log(param); 
+
+    var tempParams = JSON.parse(param);
+    //copying the values 
+    n.copy(tempParams.n);
+    g1.copy(tempParams.g1);
+    g2.copy(tempParams.g2);
+
+    var params = {
+      n:n,
+      g1:g1,
+      g2:g2
+    }
+
+    var tempPK = JSON.parse($('#comb_pk').val());
+    var pk = new ctx.ECP(0);
+    pk.copy(tempPK);
     var answer = $('#poll-options').val();
-    var cipher = demosEncrypt.enc(param, comb_pk, answer, option_count);
+    
+    var cipher = encrypt(params, pk, answer);   
     $('#id_cipher_text').val(cipher);
-    $('#cipher-form').submit();
+
+    console.log(cipher);
+    //$('#cipher-form').submit();
   }
 
   demosEncrypt.decryptCipher = function() {
@@ -96,22 +122,9 @@
     //the full objects need to be initalised as per the library, then copy the values we need into it
     //I follow Bingsheng's code as to what objects are used in the parameter object
     var ctx = new CTX("BN254CX"); //new context we can use
-    var rng = new ctx.RAND();
     var n = new ctx.BIG();
     var g1 = new ctx.ECP();
     var g2 = new ctx.ECP2();
-
-    
-    //rng.copy(tempParams.rng); //RAND doesn't have a copy function
-    //will re-initialising an object with the same parameters be okay?
-    //for now I'll do that - same way it was done in gpGen()
-    var entropy = [];
-    var length = 100;
-    rng.clean();
-    for (var i = 0; i < length; i++) {
-      entropy[i] = i;
-    }
-    rng.seed(length, entropy);
 
     //copying the values 
     n.copy(tempParams.n);
@@ -119,16 +132,21 @@
     g2.copy(tempParams.g2);
 
     var params = {
-      rng:rng,
       n:n,
       g1:g1,
       g2:g2
     }
 
+    var PKbytes = [];
+    var SKbytes = [];
     //(mostly) code from before
     var keypair = keyGen(params);
-    $('input#public-key').val(keypair.PK);
-    $('input#secret-key').val(keypair.SK);
+    keypair.PK.toBytes(PKbytes);
+    keypair.SK.toBytes(SKbytes);
+
+    $('input#public-key').val(PKbytes.toString());
+    $('input#secret-key').val(SKbytes.toString());
+
     var blob = new Blob([keypair.SK], {type : 'text/plain'});
 
     var dlBtn = $('a#download-btn');

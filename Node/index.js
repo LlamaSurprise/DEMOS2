@@ -57,22 +57,35 @@ app.get('/combpk', function(request, response){
 
 //byte array version
 app.get('/cmpkstring', function(request, response){
+    var ctx = new CTX("BN254CX");
 
 	var partials = request.query['PK']
-	
+    //if there is only one key, partials will be an array of the individual bytes
+    //if more than one, it will be an array of arrays
+    //we need to factor for this in code
+	var noOfKeys = request.query['number'];
 	var parsed = [];
-
-	var ctx = new CTX("BN254CX");
-	console.log('Combining...');
-	for (var i = partials.length - 1; i >= 0; i--) {
-		console.log('PK' +i+ ':    '+partials[i]);
-		//parsed.push(JSON.parse(partials[i]));
-		var bytes = Buffer.from(partials[i].split(','), 'hex');
-		var pk = new ctx.ECP.fromBytes(bytes);
-		parsed.push(pk);
-
-	}
-
+    
+    if(noOfKeys == partials.length)//if we're submitting more than one key
+    {
+        console.log('Combining' + noOfKeys + " keys...");
+        for (var i = partials.length - 1; i >= 0; i--) {
+        console.log('PK' +i+ ':    '+partials[i]);
+        var bytes = Buffer.from(partials[i].split(','), 'hex');
+        console.log(bytes)
+        var pk = new ctx.ECP.fromBytes(bytes);
+        parsed.push(pk);
+        }
+    }
+    else if(noOfKeys == 1)
+    {
+        console.log("Combining just one key");
+        var bytes = Buffer.from(partials.split(','), 'hex');
+        console.log(bytes);
+        var pk = new ctx.ECP.fromBytes(bytes);
+        parsed.push(pk);
+    }
+	
 	response.json(combine(parsed));
 })
 
@@ -131,20 +144,14 @@ Cryptography functions written by Bingsheng Zhang
 Uses the milagro-crypto-js library at: 
 https://github.com/milagro-crypto/milagro-crypto-js
 
-*/
-//Group parameter generator: returns rng object and generators g1,g2 for G1,G2 as well as order
+*///Group parameter generator: returns rng object and generators g1,g2 for G1,G2 as well as order
 gpGen = function(){
         //init, and base generators
         var ctx = new CTX("BN254CX");
-        var RAW = [];
-        var rng = new ctx.RAND();
-        rng.clean();
-        for (i = 0; i < 100; i++) RAW[i] = i;
-        rng.seed(100, RAW);
 
-    	var n=new ctx.BIG(0); n.rcopy(ctx.ROM_CURVE.CURVE_Order);
+        var n=new ctx.BIG(0); n.rcopy(ctx.ROM_CURVE.CURVE_Order);
 
-		//get generator P for G1
+        //get generator P for G1
             P = new ctx.ECP(0);
             gx = new ctx.BIG(0);
             gx.rcopy(ctx.ROM_CURVE.CURVE_Gx);
@@ -153,42 +160,51 @@ gpGen = function(){
                 gy.rcopy(ctx.ROM_CURVE.CURVE_Gy);
                 P.setxy(gx, gy);
             } else P.setx(gx);
-		
-		//get generator Q for G2
-		var A=new ctx.BIG(0); 
-		var B=new ctx.BIG(0); 
+        
+        //get generator Q for G2
+        var A=new ctx.BIG(0); 
+        var B=new ctx.BIG(0); 
         A.rcopy(ctx.ROM_CURVE.CURVE_Pxa);
         B.rcopy(ctx.ROM_CURVE.CURVE_Pxb);
-		var Qx=new ctx.FP2(0); Qx.bset(A,B);
-		A.rcopy(ctx.ROM_CURVE.CURVE_Pya); 
+        var Qx=new ctx.FP2(0); Qx.bset(A,B);
+        A.rcopy(ctx.ROM_CURVE.CURVE_Pya); 
         B.rcopy(ctx.ROM_CURVE.CURVE_Pyb);
-		var Qy=new ctx.FP2(0); Qy.bset(A,B);
-		var Q=new ctx.ECP2();
-		Q.setxy(Qy,Qy);
+        var Qy=new ctx.FP2(0); Qy.bset(A,B);
+        var Q=new ctx.ECP2();
+        Q.setxy(Qy,Qy);
 
-		return{
-		    rng:rng,
-		    n:n,
-		    g1:P,
-		    g2:Q
-		}    
+        return{
+            n:n,
+            g1:P,
+            g2:Q
+        }    
 }
 
 
 //creates ElGamal public and secret key
 keyGen=function(params){        
-        var ctx = new CTX("BN254CX");        
+        var ctx = new CTX("BN254CX");  
+        //set rng
+        var RAW = [];
+        var d = new Date();//time for seed, not secure
+        var rng = new ctx.RAND();
+        rng.clean();
+        RAW[0] = d.getSeconds();
+        RAW[1] = d.getMinutes();
+        RAW[2] = d.getMilliseconds();
+        rng.seed(3, RAW);
+
         //ElGamal
         var sk = new ctx.BIG(0); 
-        sk = ctx.BIG.randomnum(params.n,params.rng);
-		var pk = new ctx.ECP(0);
+        sk = ctx.BIG.randomnum(params.n,rng);
+        var pk = new ctx.ECP(0);
         pk = ctx.PAIR.G1mul(params.g1,sk);
-		
-		
-		return{
-    		PK:pk,
-	    	SK:sk
-		}
+        
+        
+        return{
+            PK:pk,
+            SK:sk
+        }
 }
 
 
@@ -201,36 +217,46 @@ combine=function(PKs){
         pk.copy(PKs[0]);
         //multiple the rest PKs
         for(i=1;i<PKs.length;i++){
-        	pk.add(PKs[i]);
-        }		
-		
-		return{
-    		PK:pk
-		}
+            pk.add(PKs[i]);
+        }       
+        
+        return{
+            PK:pk
+        }
 }
 
-		
+        
 //ElGamal encryption
 encrypt=function(params,PK, m){
         var ctx = new CTX("BN254CX");  
-        var r=new ctx.BIG.randomnum(params.n,params.rng);
+        //set rand
+        var RAW = [];
+        var d = new Date();//time for seed, not secure
+        var rng = new ctx.RAND();
+        rng.clean();
+        RAW[0] = d.getSeconds();
+        RAW[1] = d.getMinutes();
+        RAW[2] = d.getMilliseconds();
+        rng.seed(3, RAW);
+
+        var r=new ctx.BIG.randomnum(params.n,rng);
         var M=new ctx.BIG(m);
 
-		var C1=new ctx.ECP();
-		C1 = ctx.PAIR.G1mul(params.g1,r);
+        var C1=new ctx.ECP();
+        C1 = ctx.PAIR.G1mul(params.g1,r);
         
         var gM=new ctx.ECP();
         gM = ctx.PAIR.G1mul(params.g1,M);
 
-		var C2=new ctx.ECP();
+        var C2=new ctx.ECP();
         C2 = ctx.PAIR.G1mul(PK,r);
-		C2.mul(r);
-		C2.add(gM);
-		
-		return{
-		    C1:C1,
-		    C2:C2
-		}
+        C2.mul(r);
+        C2.add(gM);
+        
+        return{
+            C1:C1,
+            C2:C2
+        }
 }
 
 
@@ -244,17 +270,17 @@ add=function(Ciphers){
         s2.copy(Ciphers[0].C2);
         //multiple the rest ciphertexts
         for(i=1;i<Ciphers.length;i++){
-        	s1.add(Ciphers[i].C1);
-        }		
-		//no idea why I need two loops
+            s1.add(Ciphers[i].C1);
+        }       
+        //no idea why I need two loops
         for(j=1;j<Ciphers.length;j++){
-        	s2.add(Ciphers[j].C2);
+            s2.add(Ciphers[j].C2);
         }
 
-		return{
-    		C1:s1,
-    		C2:s2
-		}
+        return{
+            C1:s1,
+            C2:s2
+        }
 }
 
 
@@ -313,7 +339,7 @@ tally=function(params,Ds, C){
 
         //combine D
         for(i=1;i<Ds.length;i++){
-        	D.add(Ds[i].D);
+            D.add(Ds[i].D);
         }        
 
 
@@ -339,4 +365,6 @@ tally=function(params,Ds, C){
             M: "Error"
         }
 }
+
+
 

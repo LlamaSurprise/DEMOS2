@@ -3,14 +3,17 @@
 {% load bootstrap3 %}
 
 {% block app_js_vars %}
-  var param = "{{ event.EID }}";
-  var comb_pk = "{{ event.public_key }}";
+
+
   var option_count = {{ object.options.count }};
 {% endblock %}
 
 {% block content %}
 
 <div class="container">
+  <input id="event-param" type="text" value="{{event.EID}}" hidden></input>
+  <input id="comb_pk" type="text" value="{{event.public_key}}" hidden></input>
+
  <h1>Poll: {{object.question_text}}</h1>
  <span>Poll {{ poll_num }} of {{ poll_count }} in Event: <a href="{% url 'polls:view-event' object.event.id %}">{{ object.event.title }}</a></span>
  <div class="panel panel-body">
@@ -44,6 +47,7 @@
            {% endfor %}
          </select>
          <p>Make a backup of this secret key before submitting your public key. This can NOT be recalculated if forgotten!</p>
+         
          <button id="keygen-btn" onclick="demosEncrypt.encryptAndSubmit()" class="btn btn-default">Encrypt & Submit</button>
          <form id="cipher-form" method="post" action="" class="">
              {% crispy form %}

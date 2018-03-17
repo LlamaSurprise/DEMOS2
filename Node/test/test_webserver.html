@@ -60,6 +60,12 @@
 <p id="combpkResult">compk comparison results</p>
 
 
+<button type="button" id="combpkOne" class="btn">combpk (one key)</button>
+<p id="combpkLocalOne">combpk Local results</p>
+<p id="combpkServerOne">combpk Server results</p>
+<p id="combpkResultOne">compk comparison results</p>
+
+
 
 <script>
 $(document).ready(function(){
@@ -176,16 +182,16 @@ $(document).ready(function(){
 		var k2 = keyGen(params);
 
 	    var bytes = [];
-
-		var queryparams = "?PK=";
+	    var queryparams = "?number=2";
+		queryparams += "&PK=";
 		k1.PK.toBytes(bytes);
 		queryparams += bytes.toString();
 
 		queryparams += "&PK=";
 		k2.PK.toBytes(bytes);
 		queryparams += bytes.toString();
-
 		
+		console.log(queryparams);
 		var xhttp = new XMLHttpRequest();
 		xhttp.onreadystatechange = function() {
 			if (this.readyState == 4 && this.status == 200) {
@@ -207,6 +213,37 @@ $(document).ready(function(){
 		xhttp.send();
 	})
 
+	$("#combpkOne").click(function(){
+
+		var k1 = keyGen(params);
+
+	    var bytes = [];
+	    var queryparams = "?number=1";
+		queryparams += "&PK=";
+		k1.PK.toBytes(bytes);
+		queryparams += bytes.toString();
+
+		console.log(queryparams);
+		var xhttp = new XMLHttpRequest();
+		xhttp.onreadystatechange = function() {
+			if (this.readyState == 4 && this.status == 200) {
+				//test combine key
+				
+
+				var PKs = new Array(k1.PK);
+				var pk = combine(PKs); 
+
+				document.getElementById("combpkServerOne").innerHTML = this.responseText;
+
+				document.getElementById("combpkLocalOne").innerHTML = JSON.stringify(pk);
+
+				var match = (this.responseText == JSON.stringify(pk));
+				document.getElementById("combpkResultOne").innerHTML = "Matching strings: " + match;
+			}
+		};
+		xhttp.open("GET", "/cmpkstring"+queryparams, true);
+		xhttp.send();
+	})
 	
 });
 </script>

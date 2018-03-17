@@ -49,7 +49,6 @@ def create_voters(csvfile, event):
 @task()
 def generate_event_param(event, num):
     event.EID = param(str(num))
-    #event.prepared = True #temporary, just to get this running
     event.save()
 
 @task()
@@ -66,7 +65,12 @@ def tally_results(event):
 
 @task()
 def generate_combpk(event):
-    event.public_key = combpk(event.EID, " ".join(str(tkey.key) for tkey in event.trustee_keys.all()))
+    
+    pks = list()
+    for tkey in event.trustee_keys.all():
+        pks.append(str(tkey.key))
+    amount = len(pks)
+    event.public_key = combpk(amount, pks)
     event.prepared = True
     event.save()
 

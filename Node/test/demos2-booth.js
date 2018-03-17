@@ -2,11 +2,6 @@
 gpGen = function(){
         //init, and base generators
         var ctx = new CTX("BN254CX");
-        var RAW = [];
-        var rng = new ctx.RAND();
-        rng.clean();
-        for (i = 0; i < 100; i++) RAW[i] = i;
-        rng.seed(100, RAW);
 
     	var n=new ctx.BIG(0); n.rcopy(ctx.ROM_CURVE.CURVE_Order);
 
@@ -33,7 +28,6 @@ gpGen = function(){
 		Q.setxy(Qy,Qy);
 
 		return{
-		    rng:rng,
 		    n:n,
 		    g1:P,
 		    g2:Q
@@ -43,10 +37,20 @@ gpGen = function(){
 
 //creates ElGamal public and secret key
 keyGen=function(params){        
-        var ctx = new CTX("BN254CX");        
+        var ctx = new CTX("BN254CX");  
+        //set rng
+        var RAW = [];
+        var d = new Date();//time for seed, not secure
+        var rng = new ctx.RAND();
+        rng.clean();
+        RAW[0] = d.getSeconds();
+        RAW[1] = d.getMinutes();
+        RAW[2] = d.getMilliseconds();
+        rng.seed(3, RAW);
+
         //ElGamal
         var sk = new ctx.BIG(0); 
-        sk = ctx.BIG.randomnum(params.n,params.rng);
+        sk = ctx.BIG.randomnum(params.n,rng);
 		var pk = new ctx.ECP(0);
         pk = ctx.PAIR.G1mul(params.g1,sk);
 		
@@ -79,7 +83,17 @@ combine=function(PKs){
 //ElGamal encryption
 encrypt=function(params,PK, m){
         var ctx = new CTX("BN254CX");  
-        var r=new ctx.BIG.randomnum(params.n,params.rng);
+        //set rand
+        var RAW = [];
+        var d = new Date();//time for seed, not secure
+        var rng = new ctx.RAND();
+        rng.clean();
+        RAW[0] = d.getSeconds();
+        RAW[1] = d.getMinutes();
+        RAW[2] = d.getMilliseconds();
+        rng.seed(3, RAW);
+
+        var r=new ctx.BIG.randomnum(params.n,rng);
         var M=new ctx.BIG(m);
 
 		var C1=new ctx.ECP();
