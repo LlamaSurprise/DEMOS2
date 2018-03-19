@@ -46,8 +46,7 @@
              <option value="{{forloop.counter}}">{{ option.choice_text }}</option>
            {% endfor %}
          </select>
-         <p>Make a backup of this secret key before submitting your public key. This can NOT be recalculated if forgotten!</p>
-         
+                  
          <button id="keygen-btn" onclick="demosEncrypt.encryptAndSubmit()" class="btn btn-default">Encrypt & Submit</button>
          <form id="cipher-form" method="post" action="" class="">
              {% crispy form %}

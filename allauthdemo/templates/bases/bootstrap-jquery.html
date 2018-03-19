@@ -55,15 +55,10 @@
 
   Module.memoryInitializerPrefixURL = "LOL";
   var demosEncrypt = {
-    /*param: Module.cwrap('param', 'string', ['number']),
-    keygen: Module.cwrap('keygen', 'string', ['string']),
-    combpk: Module.cwrap('combpk', 'string', ['string', 'string']),
-    enc: Module.cwrap('enc', 'string', ['string', 'string', 'number', 'number']),
-    addec: Module.cwrap('addec', 'string', ['string', 'number']),
-    dec: Module.cwrap('dec', 'string', ['string', 'string']),
-    tally: Module.cwrap('tally', 'string', ['string', 'string', 'string', 'number'])*/
+
   }
 
+  //new function
   demosEncrypt.encryptAndSubmit = function() {
     var ctx = new CTX("BN254CX"); //new context we can use
     var n = new ctx.BIG();
@@ -71,7 +66,7 @@
     var g2 = new ctx.ECP2();
 
     var param = $('#event-param').val();
-    console.log(param); 
+    //console.log(param); 
 
     var tempParams = JSON.parse(param);
     //copying the values 
@@ -85,34 +80,60 @@
       g2:g2
     }
 
-    var tempPK = JSON.parse($('#comb_pk').val());
+    var tempPK = JSON.parse($('#comb_pk').val()); 
+
     var pk = new ctx.ECP(0);
-    pk.copy(tempPK);
+    pk.copy(tempPK.PK);
     var answer = $('#poll-options').val();
     
     var cipher = encrypt(params, pk, answer);   
-    $('#id_cipher_text').val(cipher);
+   
+    var c1Bytes = [];
+    cipher.C1.toBytes(c1Bytes); 
+    var c2Bytes = [];
+    cipher.C2.toBytes(c2Bytes);
 
-    console.log(cipher);
-    //$('#cipher-form').submit();
+    $('#id_cipher_text_c1').val(c1Bytes.toString());
+    $('#id_cipher_text_c2').val(c2Bytes.toString());
+
+    $('#cipher-form').submit();
   }
 
   demosEncrypt.decryptCipher = function() {
-    var sk = $('#secret-key').val();
-    if (!sk) {
+    var skString = $('#secret-key').val();
+    if (!skString) {
       alert("Please enter your secret key");
     }
     else {
+      //rebuild our secret key
+      var ctx = new CTX("BN254CX");
+      var skBytes = skString.split(",");
+      skBytes.forEach(function(){
+        $(this).val(parseInt($(this).val))
+      })
+      skBytes = Uint8Array.from(skBytes);
+      var sk =new ctx.BIG.fromBytes(skBytes);
+      console.log(sk)
       var inputs = $("form input[type=text]");
       inputs.each(function() {
-        var decryptText = demosEncrypt.dec(sk, $(this).val());
-        $(this).val(decryptText);
+        var ciphertext = {
+          C1: new ctx.ECP(),
+          C2: new ctx.ECP()
+        }
+        var temp = JSON.parse($(this).val());
+        ciphertext.C1.copy(temp.C1);
+        ciphertext.C2.copy(temp.C2);
+        //var decryptText = demosEncrypt.dec(sk, $(this).val());
+        var decryptText = partDec(sk, ciphertext);
+        //$(this).val(decryptText);
+        console.log(JSON.stringify(decryptText));
       })
       $('input[type=submit]').prop("disabled", false);
     }
   }
 
-  demosEncrypt.generateKeys = function() { //NEW Function
+  //new function
+  demosEncrypt.generateKeys = function() {
     parameter = $("#event-param").val();
     //var genkeys= demosEncrypt.keygen(parameter);
     //pk = genkeys.substring(0, genkeys.lastIndexOf('\n'));
@@ -147,7 +168,7 @@
     $('input#public-key').val(PKbytes.toString());
     $('input#secret-key').val(SKbytes.toString());
 
-    var blob = new Blob([keypair.SK], {type : 'text/plain'});
+    var blob = new Blob([SKbytes.toString()], {type : 'text/plain'});
 
     var dlBtn = $('a#download-btn');
     var url = URL.createObjectURL(blob);
@@ -158,6 +179,7 @@
     $("#public-submit").attr("disabled", false);
   }
 
+  //I don't think this is used
   demosEncrypt.downloadSecretKey = function() {
     var blob = new Blob([sk], {type : 'text/plain'});
     var dlBtn = $('a#download-btn');

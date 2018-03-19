@@ -170,7 +170,11 @@ class VoteModelChoiceField(forms.ModelChoiceField):
          return obj.choice_text
 
 class VoteForm(forms.ModelForm):
-    cipher_text = forms.CharField(
+    cipher_text_c1 = forms.CharField(
+        max_length = 1024,
+        required = True,
+    )
+    cipher_text_c2 = forms.CharField(
         max_length = 1024,
         required = True,
     )
@@ -179,7 +183,10 @@ class VoteForm(forms.ModelForm):
         self.helper = FormHelper(self)
         self.helper.form_show_labels = False
         self.helper.form_tag = False
-        self.helper.layout = Layout(Field('cipher_text', type="hidden"))
+        self.helper.layout = Layout(
+            Field('cipher_text_c1', type="hidden"),
+            Field('cipher_text_c2', type="hidden")
+            )
 
     class Meta:
         model = Poll

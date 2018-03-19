@@ -6,3 +6,4 @@ migrations
 build
 Node/test/core
 voters.csv
+datadump.json

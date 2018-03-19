@@ -72,7 +72,8 @@ class Decryption(models.Model):
 class Ballot(models.Model):
     voter = models.ForeignKey(EmailUser, on_delete=models.CASCADE, related_name="ballots")
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name="ballots")
-    cipher_text = models.CharField(max_length=4096)
+    cipher_text_c1 = models.CharField(max_length=4096)#the encryption system uses two byte strings
+    cipher_text_c2 = models.CharField(max_length=4096)
     cast = models.BooleanField(default=False)
 
 class PollOption(models.Model):

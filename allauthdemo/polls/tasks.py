@@ -62,10 +62,10 @@ def tally_results(event):
             ["fake@fake.com"],
             fail_silently=False,
         )
+        print(poll.question_text + ": " + result)
 
 @task()
 def generate_combpk(event):
-    
     pks = list()
     for tkey in event.trustee_keys.all():
         pks.append(str(tkey.key))
@@ -76,11 +76,18 @@ def generate_combpk(event):
 
 @task
 def generate_enc(poll):
-    encs = []
+    c1s = list()#c1 components of ciphertexts
+    c2s = list()#c1 components of ciphertexts
     for ballot in poll.ballots.all():
         if (ballot.cast):
-            encs.append(ballot.cipher_text)
-    poll.enc = addec(" ".join(encs), str(poll.options.count())) # poll.choices
+            c1s.append(str(ballot.cipher_text_c1))
+            c2s.append(str(ballot.cipher_text_c2))
+    ciphers = {
+        'c1s':c1s,
+        'c2s':c2s
+    }
+    amount = len(c1s)
+    poll.enc = addec(amount, ciphers)
     poll.save()
 
 @task()

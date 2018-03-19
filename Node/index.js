@@ -95,33 +95,56 @@ app.get('/cmpkstring', function(request, response){
 app.get('/addec', function(request, response){
 	var c1 = request.query['C1'];
 	var c2 = request.query['C2'];
+    var number = request.query['number']; //number of ciphertexts to add
 	//all the list of ciphertext objects to give to the function
 	var parsed = [];
 
 	var ctx = new CTX("BN254CX");
 	console.log('Addec:');
 
-	for (var i = 0; i < c1.length; i++) {
-		console.log(i + ".C1:   " + c1[i]);
-		var c1Bytes = Buffer.from(c1[i].split(','), 'hex');
-		var newC1 = new ctx.ECP.fromBytes(c1Bytes);
-		
-		var cipher =
-		{
-			C1:newC1,
-			C2:null
-		};
+    if(number == c1.length)
+    {
+        for (var i = 0; i < c1.length; i++) {
+            console.log(i + ".C1:   " + c1[i]);
+            var c1Bytes = Buffer.from(c1[i].split(','), 'hex');
+            var newC1 = new ctx.ECP.fromBytes(c1Bytes);
+            
+            var cipher =
+            {
+                C1:newC1,
+                C2:null
+            };
+        parsed.push(cipher);
+        
+        }
 
-		parsed.push(cipher);
-	}
+        for (var j = 0; j < c2.length; j++) {
+            console.log(j + ".C2:   " + c2[j]);
+            var c2Bytes = Buffer.from(c2[j].split(','), 'hex');
+            var newC2 = new ctx.ECP.fromBytes(c2Bytes);
+           
+            parsed[j].C2 = newC2;
+        }         
+    }
 
-	for (var j = 0; j < c2.length; j++) {
-		console.log(j + ".C2:   " + c2[j]);
-		var c2Bytes = Buffer.from(c2[j].split(','), 'hex');
-		var newC2 = new ctx.ECP.fromBytes(c2Bytes);
-        console.log(j + ".C2:   " + c2[j]);
-		parsed[j].C2 = newC2;
-	}
+    else if(number == 1)
+    {
+        console.log("only one cipher");    
+        var c1Bytes = Buffer.from(c1.split(','), 'hex');
+        var newC1 = new ctx.ECP.fromBytes(c1Bytes);
+        console.log("C1:   " + c1);
+        var c2Bytes = Buffer.from(c2.split(','), 'hex');
+        var newC2 = new ctx.ECP.fromBytes(c2Bytes);
+        console.log("C2:   " + c2);
+
+        var cipher =
+        {
+            C1:newC1,
+            C2:newC2
+        };
+        parsed.push(cipher);
+    }
+
 
 	response.json(add(parsed));
 })

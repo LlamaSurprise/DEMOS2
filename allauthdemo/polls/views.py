@@ -138,7 +138,8 @@ def view_poll(request, event_id, poll_num):
             ballot = Ballot.objects.get_or_create(voter=email_key[0].user, poll=poll)[0]
 
         if (form.is_valid()):
-            ballot.cipher_text = request.POST["cipher_text"]
+            ballot.cipher_text_c1 = request.POST["cipher_text_c1"]
+            ballot.cipher_text_c2 = request.POST["cipher_text_c2"]
             ballot.cast = True
             ballot.save()
             if (next_poll_index):

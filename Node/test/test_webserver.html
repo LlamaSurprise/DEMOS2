@@ -117,8 +117,8 @@ $(document).ready(function(){
 	    var cArray = new Array(c1,c2);
 
 	    var bytes = [];
-
-		var queryparams = "?C1=";
+	    var queryparams = "?number=2"
+		queryparams += "&C1=";
 		c1.C1.toBytes(bytes);
 		queryparams += bytes.toString();
 
