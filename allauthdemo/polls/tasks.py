@@ -47,14 +47,18 @@ def create_voters(csvfile, event):
             )
 
 @task()
-def generate_event_param(event, num):
-    event.EID = param(str(num))
+def generate_event_param(event):
+    event.EID = param()
     event.save()
 
 @task()
 def tally_results(event):
     for poll in event.polls.all():
-        result = tally(event.EID, poll.enc, " ".join(str(dec.text) for dec in poll.decryptions.all()), str(poll.options.count()))
+        decs = list()
+        for dec in poll.decryptions.all():
+            decs.append(dec.text)
+        amount = len(decs)
+        result = tally(amount, event.EID, decs, poll.enc)
         send_mail(
             'Your Results:',
             poll.question_text + ": " + result,

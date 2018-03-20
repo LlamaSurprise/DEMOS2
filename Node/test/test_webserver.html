@@ -65,6 +65,10 @@
 <p id="combpkServerOne">combpk Server results</p>
 <p id="combpkResultOne">compk comparison results</p>
 
+<button type="button" id="tally" class="btn">tally</button>
+<p id="tallyLocal">tally Local results</p>
+<p id="tallyServer">tally Server results</p>
+<p id="tallyResult">compk comparison results</p>
 
 
 <script>
@@ -88,26 +92,11 @@ $(document).ready(function(){
 	var params = gpGen(); 
     var keys = keyGen(params);
 
+    //encrypt number 5
     var cipher = encrypt(params,keys.PK, 5);
-    var string_c1 = cipher.C1.toString();
 
     //test decrypt
     var message = decrypt(params, keys.SK, cipher);
-
-
-
-
-    
-
-
-    //test tally
-    /*
-    var Tc = encrypt(params,pk.PK, 3);
-    var D1 = partDec(k1.SK, Tc);
-    var D2 = partDec(k2.SK, Tc);
-    var Ds = new Array(D1,D2);
-    var tar = tally(params, Ds, Tc);
-    */
 
 
 	$("#addec").click(function(){
@@ -244,7 +233,54 @@ $(document).ready(function(){
 		xhttp.open("GET", "/cmpkstring"+queryparams, true);
 		xhttp.send();
 	})
+
+	$("#tally").click(function(){
+
+		//combine some keys first to test tally
+	    var k1 = keyGen(params);
+	    var k2 = keyGen(params);
+	    var PKs = new Array(k1.PK,k2.PK);
+	    var pk = combine(PKs);
+
+	    var Tc = encrypt(params,pk.PK, 3);
+	    var D1 = partDec(k1.SK, Tc);
+	    var D2 = partDec(k2.SK, Tc);
+	    var Ds = new Array(D1,D2);
+
+	    var queryparams = "?number=2";
+		queryparams += "&param=";//JSON format
+		queryparams += JSON.stringify(params);
+
+		queryparams +="&decs=";//will be in byte array format
+		var bytes = [];
+		D1.D.toBytes(bytes);
+		queryparams += bytes.toString();
+		queryparams +="&decs=";
+		D2.D.toBytes(bytes);
+		queryparams += bytes.toString();
+
+		queryparams +="&cipher=";//JSON, since it came from the server before
+		queryparams += JSON.stringify(Tc);
+
+		console.log(queryparams);
+		var xhttp = new XMLHttpRequest();
+		xhttp.onreadystatechange = function() {
+			if (this.readyState == 4 && this.status == 200) {
+				//test tally results
 	
+			    var tar = tally(params, Ds, Tc);
+
+				document.getElementById("tallyServer").innerHTML = this.responseText;
+
+				document.getElementById("tallyLocal").innerHTML = JSON.stringify(tar);
+
+				var match = (this.responseText == JSON.stringify(tar));
+				document.getElementById("tallyResult").innerHTML = "Matching strings: " + match;
+			}
+		};
+		xhttp.open("GET", "/tally"+queryparams, true);
+		xhttp.send();
+	})
 });
 </script>
 

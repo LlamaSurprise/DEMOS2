@@ -151,6 +151,70 @@ app.get('/addec', function(request, response){
 
 
 
+//tally partially decrypted ciphertexts
+app.get('/tally', function(request, response){
+    console.log("called tally");
+    var amount = request.query['number'];//number of decryptions taking in
+    var paramString = request.query['param'];//event group parameter in JSON
+    var partialsStrings = request.query['decs'];//array of partial decryption(s) in bytes
+    var ciphertextString = request.query['cipher'];//ciphertext being decrypted in JSON
+
+    //re-build parameters
+    var tempParams = JSON.parse(paramString);
+    var ctx = new CTX("BN254CX"); //new context we can use
+    var n = new ctx.BIG();
+    var g1 = new ctx.ECP();
+    var g2 = new ctx.ECP2();
+
+    //copying the values 
+    n.copy(tempParams.n);
+    g1.copy(tempParams.g1);
+    g2.copy(tempParams.g2);
+
+    var params = {
+      n:n,
+      g1:g1,
+      g2:g2
+    }
+
+    //re-build partial decryptions
+    var partials = []
+    if(amount == partialsStrings.length)
+    {
+        console.log(amount + " partial decryptions");
+        for(var i = 0; i < partialsStrings.length; i++)
+        {
+            var bytes = Buffer.from(partialsStrings[i].split(','), 'hex');
+            var dec = {
+                D:new ctx.ECP.fromBytes(bytes)
+            }
+            partials.push(dec);
+        }
+    }
+    else if(amount == 1)
+    {
+        console.log("Only one partial decryption received")
+        var bytes = Buffer.from(partialsStrings.split(','), 'hex');
+        var dec = {
+            D:new ctx.ECP.fromBytes(bytes)
+        }
+        partials.push(dec);
+    }
+
+    //re-build combined ciphertext
+    var tempCipher = JSON.parse(ciphertextString);
+
+    cipher = {
+        C1: new ctx.ECP(),
+        C2: new ctx.ECP()
+    }
+    cipher.C1.copy(tempCipher.C1);
+    cipher.C2.copy(tempCipher.C2);
+
+    response.json(tally(params, partials, cipher))
+})
+
+
 
 var server = app.listen(port, function(){
 	var host = server.address().address;

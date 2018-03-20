@@ -108,14 +108,10 @@
       //rebuild our secret key
       var ctx = new CTX("BN254CX");
       var skBytes = skString.split(",");
-      skBytes.forEach(function(){
-        $(this).val(parseInt($(this).val))
-      })
-      skBytes = Uint8Array.from(skBytes);
       var sk =new ctx.BIG.fromBytes(skBytes);
-      console.log(sk)
+
       var inputs = $("form input[type=text]");
-      inputs.each(function() {
+      inputs.each(function() { //for each ciphertext to decrypt
         var ciphertext = {
           C1: new ctx.ECP(),
           C2: new ctx.ECP()
@@ -123,11 +119,14 @@
         var temp = JSON.parse($(this).val());
         ciphertext.C1.copy(temp.C1);
         ciphertext.C2.copy(temp.C2);
-        //var decryptText = demosEncrypt.dec(sk, $(this).val());
-        var decryptText = partDec(sk, ciphertext);
-        //$(this).val(decryptText);
-        console.log(JSON.stringify(decryptText));
+        
+        var partial = partDec(sk, ciphertext);//returns an object containing an ECP()
+        
+        var bytes = [];
+        partial.D.toBytes(bytes);
+        $(this).val(bytes.toString());//submit in byte array form
       })
+
       $('input[type=submit]').prop("disabled", false);
     }
   }
@@ -135,10 +134,6 @@
   //new function
   demosEncrypt.generateKeys = function() {
     parameter = $("#event-param").val();
-    //var genkeys= demosEncrypt.keygen(parameter);
-    //pk = genkeys.substring(0, genkeys.lastIndexOf('\n'));
-    //sk = genkeys.slice(genkeys.lastIndexOf('\n') + 1);
-
     var tempParams = JSON.parse(parameter);
     //the full objects need to be initalised as per the library, then copy the values we need into it
     //I follow Bingsheng's code as to what objects are used in the parameter object
@@ -160,7 +155,7 @@
 
     var PKbytes = [];
     var SKbytes = [];
-    //(mostly) code from before
+
     var keypair = keyGen(params);
     keypair.PK.toBytes(PKbytes);
     keypair.SK.toBytes(SKbytes);
@@ -168,6 +163,7 @@
     $('input#public-key').val(PKbytes.toString());
     $('input#secret-key').val(SKbytes.toString());
 
+    //mostly code from before here
     var blob = new Blob([SKbytes.toString()], {type : 'text/plain'});
 
     var dlBtn = $('a#download-btn');

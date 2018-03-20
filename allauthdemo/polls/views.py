@@ -272,7 +272,7 @@ def create_event(request):
         trustee_formset = TrusteeFormSet(request.POST, prefix="formset_trustee")
         if form.is_valid():
             event = form.save()
-            generate_event_param.delay(event, len(event.title))
+            generate_event_param.delay(event)
             if request.FILES:
                 print("creating voters")
                 create_voters.delay(csvfile, event) # this will be done on event launch ultimately

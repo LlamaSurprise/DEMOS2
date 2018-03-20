@@ -5,7 +5,7 @@ import json
 import urllib2
 
 #change this file name etc., temporary change to get it working for the meantime
-def param(num):
+def param():
     jsondict = json.load(urllib2.urlopen('http://localhost:8080/param'))
     return json.dumps(jsondict)
 
@@ -34,5 +34,17 @@ def addec(amount, ciphers):
     print(json.dumps(jsondict))
     return json.dumps(jsondict)
 
-def tally(param, addec_cipher, dec, m):
-    return call_process("tally", param, addec_cipher, dec, m)
+def tally(amount, param, decs, cipher):
+    url = 'http://localhost:8080/tally'
+    querystring = '?number='+str(amount)
+    querystring += '&param='+urllib2.quote(str(param))
+
+    for i, value in enumerate(decs):
+        querystring += "&decs="+str(value)
+
+    querystring += '&cipher=' + urllib2.quote(str(cipher))
+
+    print(url+querystring)
+    jsondict = json.load(urllib2.urlopen(url+querystring))
+    print('tally: ' + str(jsondict['M']))
+    return str(jsondict['M'])
