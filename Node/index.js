@@ -194,6 +194,7 @@ app.get('/tally', function(request, response){
     else if(amount == 1)
     {
         console.log("Only one partial decryption received")
+        console.log(paramString)
         var bytes = Buffer.from(partialsStrings.split(','), 'hex');
         var dec = {
             D:new ctx.ECP.fromBytes(bytes)

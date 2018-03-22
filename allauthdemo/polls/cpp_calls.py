@@ -39,12 +39,18 @@ def tally(amount, param, decs, cipher):
     querystring = '?number='+str(amount)
     querystring += '&param='+urllib2.quote(str(param))
 
+    testquerystring = '?number='+str(amount)
+    testquerystring += '&param='+str(param)
+
     for i, value in enumerate(decs):
         querystring += "&decs="+str(value)
+        testquerystring += "&decs="+str(value)
 
     querystring += '&cipher=' + urllib2.quote(str(cipher))
+    testquerystring += '&cipher=' + str(cipher)
 
     print(url+querystring)
+    print(url+testquerystring)
     jsondict = json.load(urllib2.urlopen(url+querystring))
     print('tally: ' + str(jsondict['M']))
     return str(jsondict['M'])

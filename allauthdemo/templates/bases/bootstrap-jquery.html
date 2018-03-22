@@ -85,7 +85,7 @@
     var pk = new ctx.ECP(0);
     pk.copy(tempPK.PK);
     var answer = $('#poll-options').val();
-    
+    console.log(answer);
     var cipher = encrypt(params, pk, answer);   
    
     var c1Bytes = [];

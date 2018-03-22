@@ -195,6 +195,8 @@ def event_trustee_decrypt(request, event_id):
         if (email_key.exists() and event.users_trustees.filter(email=email_key[0].user.email).exists()):
             if (Decryption.objects.filter(event=event, user=email_key[0].user).exists()):
                 messages.add_message(request, messages.WARNING, 'You have already provided your decryptions for this event')
+                #if (event.decryptions.count() == (event.polls.count() * event.users_trustees.count())):
+                #    tally_results.delay(event) # all keys are in
                 return HttpResponseRedirect(reverse("user_home"))
             elif (request.method == "GET"):
                 initial = []

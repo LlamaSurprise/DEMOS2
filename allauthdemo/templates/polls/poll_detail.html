@@ -42,8 +42,9 @@
        <div class="panel-heading">Options</div>
        <div class="panel panel-body">
          <select class="radio-inline select form-control" id="poll-options" name="options">
+          {% load custom_filters_tags %}
            {% for option in object.options.all %}
-             <option value="{{forloop.counter}}">{{ option.choice_text }}</option>
+             <option value="{{forloop.counter|get_ballot_value}}">{{ option.choice_text }}</option>
            {% endfor %}
          </select>
                   
