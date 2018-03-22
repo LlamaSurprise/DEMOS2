@@ -58,6 +58,14 @@
 
   }
 
+  /*
+
+  Code written with "New function" comments have
+  been totally or mostly re-implemented by Thomas Smith
+
+
+  */
+
   //new function
   demosEncrypt.encryptAndSubmit = function() {
     var ctx = new CTX("BN254CX"); //new context we can use
@@ -99,6 +107,8 @@
     $('#cipher-form').submit();
   }
 
+
+  //new function
   demosEncrypt.decryptCipher = function() {
     var skString = $('#secret-key').val();
     if (!skString) {
@@ -175,6 +185,7 @@
     $("#public-submit").attr("disabled", false);
   }
 
+  //these other functions might not be used
   //I don't think this is used
   demosEncrypt.downloadSecretKey = function() {
     var blob = new Blob([sk], {type : 'text/plain'});

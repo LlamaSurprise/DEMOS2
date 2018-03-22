@@ -1,3 +1,11 @@
+/*
+
+
+Code by Thomas Smith
+
+
+*/
+
 var port = 8080;
 
 var express = require('express');
@@ -232,7 +240,10 @@ Cryptography functions written by Bingsheng Zhang
 Uses the milagro-crypto-js library at: 
 https://github.com/milagro-crypto/milagro-crypto-js
 
-*///Group parameter generator: returns rng object and generators g1,g2 for G1,G2 as well as order
+*/
+
+
+//Group parameter generator: returns rng object and generators g1,g2 for G1,G2 as well as order
 gpGen = function(){
         //init, and base generators
         var ctx = new CTX("BN254CX");

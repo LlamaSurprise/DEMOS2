@@ -77,13 +77,26 @@ WSGI_APPLICATION = 'allauthdemo.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
-
+'''
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
+'''
+DATABASES = {
+    'default':{
+    'ENGINE': 'django.db.backends.mysql',
+    'NAME':'DEMOS2',
+    'USER': 'username',
+    'PASSWORD' : 'password',
+    'HOST': 'localhost',
+    'PORT':'3306',
+    }
+}
+
+SILENCED_SYSTEM_CHECKS = ['mysql.E001']
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
@@ -146,7 +159,14 @@ TEMPLATES = [
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+#EMAIL_PORT = 1025
+
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'username@gmail.com' 
+EMAIL_HOST_PASSWORD = 'password'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, "static"),
@@ -178,7 +198,7 @@ NOCAPTCHA = True # v2 (no puzzle, just click)
 CRISPY_FAIL_SILENTLY = not DEBUG
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
-EMAIL_PORT = 1025
+
 
 CELERY_RESULT_BACKEND='djcelery.backends.database:DatabaseBackend'
 BROKER_URL = 'django://'

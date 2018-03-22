@@ -45,7 +45,11 @@ def create_voters(csvfile, event):
                 [string.join(row)],
                 fail_silently=False,
             )
+'''
 
+Starting here: functions re-implemented by Thomas Smith
+
+'''
 @task()
 def generate_event_param(event):
     event.EID = param()
@@ -93,6 +97,12 @@ def generate_enc(poll):
     amount = len(c1s)
     poll.enc = addec(amount, ciphers)
     poll.save()
+
+'''
+
+End of re-implemented code
+
+'''
 
 @task()
 def add(x, y):

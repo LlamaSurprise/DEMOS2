@@ -5,6 +5,11 @@ import json
 import urllib2
 
 #change this file name etc., temporary change to get it working for the meantime
+'''
+
+All functions in this file have been re-implemenented by Thomas Smith
+
+'''
 def param():
     jsondict = json.load(urllib2.urlopen('http://localhost:8080/param'))
     return json.dumps(jsondict)

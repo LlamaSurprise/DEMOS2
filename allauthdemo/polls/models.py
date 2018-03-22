@@ -69,6 +69,7 @@ class Decryption(models.Model):
     user = models.ForeignKey(EmailUser, on_delete=models.CASCADE, related_name="decryptions")
     text = models.CharField(max_length=1024)
 
+#some modification to this class
 class Ballot(models.Model):
     voter = models.ForeignKey(EmailUser, on_delete=models.CASCADE, related_name="ballots")
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name="ballots")
